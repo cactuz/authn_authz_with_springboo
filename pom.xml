@@ -11,7 +11,7 @@
 	<artifactId>auth-course</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>auth-course</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Demo project for Spring Boot Auth</description>
 
 	<properties>
 		<java.version>1.8</java.version>
