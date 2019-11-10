@@ -13,7 +13,11 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "item")
 public class Item {
@@ -60,6 +64,7 @@ public class Item {
 		return true;
 	}
 
+	/*
 	public Long getId() {
 		return id;
 	}
@@ -92,6 +97,6 @@ public class Item {
 		this.description = description;
 	}
 	
-	
+	*/
 	
 }

@@ -1,0 +1,11 @@
+### This step follows after user creation
+POST http://localhost:8080/login
+Accept: application/json
+Content-Type: application/json
+
+{
+    "username": "name",
+    "password": "password_at_least_7_characters"
+}
+
+###

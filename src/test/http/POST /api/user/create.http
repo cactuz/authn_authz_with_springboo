@@ -1,0 +1,12 @@
+
+POST http://localhost:8080/api/user/create/
+Accept: application/json
+Content-Type: application/json
+
+{
+"username" : "name",
+"password" : "password_at_least_7_characters",
+  "confirmPassword" : "password_at_least_7_characters"
+}
+
+### You will find the password complexity in UserController class

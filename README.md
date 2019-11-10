@@ -4,6 +4,7 @@ In this project, you'll have an opportunity to demonstrate the security and DevO
 
 ## Project Template
 First, you'll want to get set up with the template. The template is written in Java using Spring Boot, Hibernate ORM, and the H2 database. H2 is an in memory database, so if you need to retry something, every application startup is a fresh copy.
+Please install lombok to your idea. This injects the getters and setters.
 
 To use the template, import it in the IDE of your choice as a Spring Boot application. Where required, this readme assumes the eclipse IDE.
 
@@ -23,24 +24,35 @@ In resources, you'll see the application configuration that sets up our database
 
 In eclipse, you can right click the project and click  “run as” and select Spring Boot application. The application should tell you it’s starting in the console view. Once started, using a REST client, such as Postman, explore the APIs.
 
-Some examples are as below:
-To create a new user for example, you would send a POST request to:
-http://localhost:8080/api/user/create with an example body like 
+## How to interact with the API
+You may refer to src/test/http/ for sample requests
+1) First, create a new user: with a POST request:
+http://localhost:8080/api/user/create 
 
 ```
 {
-    "username": "test"
+"username" : "bob",
+"password" : "password_at_least_7_characters",
+  "confirmPassword" : "password_at_least_7_characters"
 }
 ```
 
+2) Then login, with a POST request: http://localhost:8080/login using the credentials set-up in step 1
 
-and this would return
 ```
 {
-    "id" 1,
-    "username": "test"
+    "username": "test",
+    "password": "password_at_least_7_characters"
 }
 ```
+
+From the response header copy the JWT from Authorization value, example:
+```
+Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJib2IiLCJleHAiOjE1NzQyMTM5MjZ9.1jrsdy6X4mnGtjTEdhvG4f-0d7RwjmhA1St7xIq542u42KoV6PTzugA0jjCQORC_NhQdFISLk9h2NByT3b7g2A
+```
+
+3) One can then go ahead and access the other api end points using the JWT in the request header
+
 
 
 Exercise:
@@ -78,3 +90,6 @@ and that should, if those are valid credentials, return a 200 OK with an Authori
 
 ## Testing
 You must implement unit tests demonstrating at least 80% code coverage.
+
+## References
+For the Auth implementation: https://auth0.com/blog/implementing-jwt-authentication-on-spring-boot/

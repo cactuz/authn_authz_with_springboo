@@ -1,7 +1,11 @@
 package com.example.demo.model.requests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class ModifyCartRequest {
 	
 	@JsonProperty
@@ -13,6 +17,7 @@ public class ModifyCartRequest {
 	@JsonProperty
 	private int quantity;
 
+	/*
 	public String getUsername() {
 		return username;
 	}
@@ -37,6 +42,6 @@ public class ModifyCartRequest {
 		this.quantity = quantity;
 	}
 	
-	
+	*/
 
 }

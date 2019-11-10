@@ -12,8 +12,11 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
-
+@Getter
+@Setter
 @Entity
 @Table(name = "user")
 public class User {
@@ -31,7 +34,12 @@ public class User {
     @JoinColumn(name = "cart_id", referencedColumnName = "id")
 	@JsonIgnore
     private Cart cart;
-	
+
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	@Column(nullable = false)
+	private String password;
+
+	/*
 	public Cart getCart() {
 		return cart;
 	}
@@ -56,6 +64,6 @@ public class User {
 		this.username = username;
 	}
 	
-	
+	*/
 	
 }
