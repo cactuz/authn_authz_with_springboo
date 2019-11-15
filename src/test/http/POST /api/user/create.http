@@ -1,5 +1,5 @@
 
-POST http://localhost:8080/api/user/create/
+POST http://localhost:8080/api/user/create
 Accept: application/json
 Content-Type: application/json
 
