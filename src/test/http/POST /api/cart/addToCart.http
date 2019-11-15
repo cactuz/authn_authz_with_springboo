@@ -1,0 +1,14 @@
+### Please change the JWT in the Authorization by loggin in first
+POST http://localhost:8080/api/cart/addToCart
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJib2IiLCJleHAiOjE1NzQyMTM5MjZ9.1jrsdy6X4mnGtjTEdhvG4f-0d7RwjmhA1St7xIq542u42KoV6PTzugA0jjCQORC_NhQdFISLk9h2NByT3b7g2A
+
+
+{
+"username" : "name",
+  "itemId" : 1,
+  "quantity" : 2
+}
+
+###
