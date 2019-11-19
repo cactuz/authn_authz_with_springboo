@@ -11,7 +11,7 @@
 	<artifactId>auth-course</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>auth-course</name>
-	<description>Demo project for Spring Boot Auth</description>
+	<description>Demo project for Spring Boot Auth and Logging</description>
 
 	<properties>
 		<java.version>1.8</java.version>
@@ -40,10 +40,6 @@
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.auth0</groupId>
-			<artifactId>java-jwt</artifactId>
 			<version>3.4.0</version>
 		</dependency>
 		<dependency>
@@ -51,7 +47,10 @@
 			<artifactId>json</artifactId>
 			<version>20180813</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
@@ -61,6 +60,17 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>fluent-hc</artifactId>
+			<version>4.5.2</version>
 		</dependency>
 
 		<dependency>
@@ -87,5 +97,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
