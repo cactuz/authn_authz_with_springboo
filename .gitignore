@@ -2,3 +2,5 @@ target/
 .idea
 .idea/
 requirements.txt
+app.log
+target/

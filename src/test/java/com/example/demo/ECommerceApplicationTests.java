@@ -1,8 +1,9 @@
 package com.example.demo;
 
+import com.example.demo.model.persistence.Cart;
 import com.example.demo.model.persistence.User;
 import com.example.demo.model.requests.CreateUserRequest;
-import org.json.JSONObject;
+import com.example.demo.model.requests.ModifyCartRequest;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,8 +13,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.UUID;
+import java.util.*;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes=ECommerceApplication.class)
@@ -25,14 +25,15 @@ public class ECommerceApplicationTests {
 	private static HttpHeaders headers;
 	private static String CREATE_USER_PATH = "/api/user/create";
 	private static String LOGIN_PATH = "/login";
-	private static String PASSWORD = TestUtils.getTestUser().getPassword();
+	private static String ADD_TO_CART_PATH = "/api/cart/addToCart";
+	private static String SUBMIT_ORDER_PATH = "/api/order/submit/";
+	private static String PASSWORD = "password";
+	private static long TEST_ITEM = 1L;
 
 	@BeforeClass
 	public static void oneTimeSetUp() {
 		headers = new HttpHeaders();
-		//headers.add("Accept", "application/json");
 		headers.setContentType(MediaType.APPLICATION_JSON);
-		//headers.set("User-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
 	}
 
 	@Before
@@ -43,68 +44,91 @@ public class ECommerceApplicationTests {
 	public void verifyCreateUserRequestAndLoginTest() {
 		//A new user ID is created for each test. It is not possible to create one via @BeforeClass.
 		//That test method will require static variables. Unfortunately, the port may not be generated statically.
-		CreateUserRequest createUserRequest = new CreateUserRequest();
-		String randomUserName = UUID.randomUUID().toString();
-		createUserRequest.setUsername(randomUserName);
-		createUserRequest.setPassword(PASSWORD);
-		createUserRequest.setConfirmPassword(PASSWORD);
+		String userName = UUID.randomUUID().toString();
 
-		HttpEntity<CreateUserRequest> createUserRequestHttpEntity= new HttpEntity<>(createUserRequest, headers);
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<User> userResponseEntity;
-		userResponseEntity = restTemplate.postForEntity(getURL(CREATE_USER_PATH), createUserRequestHttpEntity, User.class);
+		List<ResponseEntity> response = getJWTForNewUser(userName);
 
-		System.out.println("rudy jwt: " + getJWTForNewUser(randomUserName));
+		ResponseEntity<User> createUserResponse = response.get(0);
+		ResponseEntity<Void> loginResponse = response.get(1);
+		String jwt = loginResponse.getHeaders().toSingleValueMap().get("Authorization");
+		headers.add("Authorization", jwt);
+		Assert.assertEquals("Create User Http Response is 200", HttpStatus.OK, createUserResponse.getStatusCode());
+		Assert.assertEquals("Create User Response Name is same as input", userName, createUserResponse.getBody().getUsername());
+		Assert.assertEquals("Login New User response is 200", HttpStatus.OK, loginResponse.getStatusCode());
+		Assert.assertNotNull("Login header contains JWT", jwt);
 
-		Assert.assertEquals(HttpStatus.OK, userResponseEntity.getStatusCode());
-		Assert.assertEquals(randomUserName, userResponseEntity.getBody().getUsername());
+		ResponseEntity<Cart> addToCartResponse = sendAddToCartRequest(userName, headers);
+		Assert.assertEquals("Add to cart request is successful", HttpStatus.OK, addToCartResponse.getStatusCode());
+		Assert.assertEquals("Item number in cart matches submission", TEST_ITEM,
+				Long.parseLong(addToCartResponse.getBody().getItems().get(0).getId().toString()));
+
+		ResponseEntity<Cart> submitOrderResponse = submitOrderReqquest(userName, headers);
+		Assert.assertEquals("Add to cart request is successful", HttpStatus.OK, submitOrderResponse.getStatusCode());
 	}
-
-	@Test
-	public void Test() {
-		CreateUserRequest createUserRequest = new CreateUserRequest();
-		String randomUserName = UUID.randomUUID().toString();
-		createUserRequest.setUsername(randomUserName);
-		createUserRequest.setPassword(TestUtils.getTestUser().getPassword());
-		createUserRequest.setConfirmPassword(TestUtils.getTestUser().getPassword());
-		HttpEntity<CreateUserRequest> createUserRequestHttpEntity= new HttpEntity<>(createUserRequest, headers);
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<User> userResponseEntity;
-		userResponseEntity = restTemplate.postForEntity(getURL(CREATE_USER_PATH), createUserRequestHttpEntity, User.class);
-
-		System.out.println("rudy jwt: " + getJWTForNewUser(randomUserName));
-
-		Assert.assertEquals(HttpStatus.OK, userResponseEntity.getStatusCode());
-		Assert.assertEquals(randomUserName, userResponseEntity.getBody().getUsername());
-	}
-
 
 	private String getURL(String path) {
 		String url = "http://localhost:" + port + path;
 		return url;
 	}
 
-	private String getJWTForNewUser(String useName) {
-		String userName = UUID.randomUUID().toString();
-
+	/**
+	 * Creates a new user and login the new user for authorization get the JWT (Json Web Token).
+	 * @param userName
+	 * @return
+	 */
+	private List<ResponseEntity> getJWTForNewUser(String userName) {
 		CreateUserRequest createUserRequest = new CreateUserRequest();
 		createUserRequest.setUsername(userName);
 		createUserRequest.setPassword(PASSWORD);
 		createUserRequest.setConfirmPassword(PASSWORD);
 
-		//creates a user
 		HttpEntity<CreateUserRequest> createUserRequestHttpEntity= new HttpEntity<>(createUserRequest, headers);
+		RestTemplate createUserRestTemplate = new RestTemplate();
+		ResponseEntity<User> createUserResponse = createUserRestTemplate.postForEntity(getURL(CREATE_USER_PATH), createUserRequestHttpEntity, User.class);
+
+		Map<String, String> body = new HashMap<>();
+		body.put("username", userName);
+		body.put("password", PASSWORD);
+
+		RestTemplate loginTemplate = new RestTemplate();
+		//must not use User entity for the body; it will create a recursive loop in UserDetailsServiceImpl, loadUserByUserName
+		ResponseEntity<Void> loginResponse = loginTemplate.postForEntity(getURL(LOGIN_PATH), body, null);
+
+		List<ResponseEntity> list = new ArrayList<>();
+		list.add(createUserResponse);
+		list.add(loginResponse);
+
+		return list;
+	}
+
+	/**
+	 * Adds a test item to a cart for an authenticated user.
+	 * @param userName
+	 * @param headers
+	 * @return
+	 */
+	private ResponseEntity<Cart> sendAddToCartRequest(String userName, HttpHeaders headers) {
+
+		ModifyCartRequest cart = new ModifyCartRequest();
+		cart.setUsername(userName);
+		cart.setItemId(TEST_ITEM);
+		cart.setQuantity(2);
+		HttpEntity<ModifyCartRequest> cartRequestHttpEntity = new HttpEntity<>(cart, headers);
+
 		RestTemplate restTemplate = new RestTemplate();
-		User user = new User();
-		user = restTemplate.postForEntity(getURL(CREATE_USER_PATH), createUserRequestHttpEntity, User.class).getBody();
+		return restTemplate.postForEntity(getURL(ADD_TO_CART_PATH), cartRequestHttpEntity, Cart.class);
+	}
 
-		//user login and generate JWT
+	/**
+	 * Submits cart of an authenticated user.
+	 * @param userName
+	 * @param headers
+	 * @return
+	 */
+	private ResponseEntity<Cart> submitOrderReqquest(String userName, HttpHeaders headers) {
+		HttpEntity<Void> orderHttpEntity = new HttpEntity<>(null, headers);
 
-		HttpEntity<User> useLoginRequestHttpEntity= new HttpEntity<>(user, headers);
-		restTemplate.postForEntity(getURL(LOGIN_PATH), useLoginRequestHttpEntity, User.class);
-//				.getHeaders()
-//				.toSingleValueMap()
-//				.get("Authorization");
-		return "hello";
+		RestTemplate restTemplate = new RestTemplate();
+		return restTemplate.postForEntity(getURL(SUBMIT_ORDER_PATH+userName), orderHttpEntity, Cart.class);
 	}
 }
